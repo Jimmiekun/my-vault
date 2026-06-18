@@ -1,0 +1,630 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Jason's Vault</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&display=swap');
+
+  :root {
+    --bg: #0a0a0f;
+    --surface: #13131a;
+    --card: #1a1a24;
+    --border: #2a2a3a;
+    --accent: #7c6dfa;
+    --accent2: #fa6d9a;
+    --text: #e8e8f0;
+    --muted: #6b6b80;
+    --music: #fa6d9a;
+    --video: #6dfaaa;
+    --notes: #fad96d;
+    --links: #6db8fa;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Space Grotesk', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+  }
+
+  /* SIDEBAR */
+  .sidebar {
+    position: fixed;
+    left: 0; top: 0; bottom: 0;
+    width: 220px;
+    background: var(--surface);
+    border-right: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    padding: 24px 16px;
+    z-index: 100;
+  }
+
+  .logo {
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--accent);
+    margin-bottom: 32px;
+    letter-spacing: -0.5px;
+  }
+
+  .logo span { color: var(--accent2); }
+
+  .nav-label {
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    color: var(--muted);
+    margin-bottom: 8px;
+    padding-left: 8px;
+  }
+
+  .nav-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 12px;
+    border-radius: 10px;
+    cursor: pointer;
+    font-size: 14px;
+    color: var(--muted);
+    transition: all 0.2s;
+    margin-bottom: 2px;
+  }
+
+  .nav-item:hover, .nav-item.active {
+    background: var(--card);
+    color: var(--text);
+  }
+
+  .nav-item.active { color: var(--accent); }
+
+  .nav-dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+  }
+
+  .upload-btn {
+    margin-top: auto;
+    background: var(--accent);
+    color: white;
+    border: none;
+    padding: 12px;
+    border-radius: 12px;
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: opacity 0.2s;
+    width: 100%;
+  }
+
+  .upload-btn:hover { opacity: 0.85; }
+
+  /* MAIN */
+  .main {
+    margin-left: 220px;
+    padding: 32px;
+    min-height: 100vh;
+  }
+
+  .topbar {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 32px;
+  }
+
+  .search-wrap {
+    flex: 1;
+    position: relative;
+  }
+
+  .search-wrap input {
+    width: 100%;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    color: var(--text);
+    padding: 12px 16px 12px 44px;
+    border-radius: 12px;
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 14px;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+
+  .search-wrap input:focus { border-color: var(--accent); }
+  .search-wrap input::placeholder { color: var(--muted); }
+
+  .search-icon {
+    position: absolute;
+    left: 14px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--muted);
+    font-size: 16px;
+  }
+
+  /* STATS */
+  .stats {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
+    margin-bottom: 32px;
+  }
+
+  .stat-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 20px;
+    cursor: pointer;
+    transition: all 0.2s;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .stat-card:hover { border-color: var(--accent); transform: translateY(-2px); }
+
+  .stat-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+    border-radius: 16px 16px 0 0;
+  }
+
+  .stat-card.music::before { background: var(--music); }
+  .stat-card.video::before { background: var(--video); }
+  .stat-card.notes::before { background: var(--notes); }
+  .stat-card.links::before { background: var(--links); }
+
+  .stat-icon { font-size: 24px; margin-bottom: 12px; }
+  .stat-label { font-size: 12px; color: var(--muted); margin-bottom: 4px; }
+  .stat-count { font-size: 28px; font-weight: 700; }
+
+  .stat-card.music .stat-count { color: var(--music); }
+  .stat-card.video .stat-count { color: var(--video); }
+  .stat-card.notes .stat-count { color: var(--notes); }
+  .stat-card.links .stat-count { color: var(--links); }
+
+  /* FILES */
+  .section-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 16px;
+  }
+
+  .section-title {
+    font-size: 16px;
+    font-weight: 600;
+  }
+
+  .files-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 16px;
+    margin-bottom: 32px;
+  }
+
+  .file-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 20px;
+    cursor: pointer;
+    transition: all 0.2s;
+    position: relative;
+  }
+
+  .file-card:hover {
+    border-color: var(--accent);
+    transform: translateY(-2px);
+  }
+
+  .file-thumb {
+    width: 48px; height: 48px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 22px;
+    margin-bottom: 14px;
+  }
+
+  .file-thumb.music { background: rgba(250,109,154,0.15); }
+  .file-thumb.video { background: rgba(109,250,170,0.15); }
+  .file-thumb.notes { background: rgba(250,217,109,0.15); }
+  .file-thumb.links { background: rgba(109,184,250,0.15); }
+
+  .file-name {
+    font-size: 13px;
+    font-weight: 600;
+    margin-bottom: 4px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .file-meta {
+    font-size: 11px;
+    color: var(--muted);
+    margin-bottom: 14px;
+  }
+
+  .file-actions {
+    display: flex;
+    gap: 8px;
+  }
+
+  .btn-dl, .btn-del {
+    flex: 1;
+    padding: 7px;
+    border-radius: 8px;
+    border: none;
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 11px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: opacity 0.2s;
+  }
+
+  .btn-dl {
+    background: var(--accent);
+    color: white;
+  }
+
+  .btn-del {
+    background: var(--border);
+    color: var(--muted);
+  }
+
+  .btn-dl:hover, .btn-del:hover { opacity: 0.75; }
+
+  /* EMPTY STATE */
+  .empty {
+    text-align: center;
+    padding: 48px;
+    color: var(--muted);
+  }
+
+  .empty-icon { font-size: 48px; margin-bottom: 12px; }
+  .empty p { font-size: 14px; }
+
+  /* MODAL */
+  .modal-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.7);
+    z-index: 200;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .modal-overlay.show { display: flex; }
+
+  .modal {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 32px;
+    width: 440px;
+    max-width: 90vw;
+  }
+
+  .modal h2 { font-size: 18px; margin-bottom: 24px; }
+
+  .form-group { margin-bottom: 16px; }
+
+  .form-group label {
+    display: block;
+    font-size: 12px;
+    color: var(--muted);
+    margin-bottom: 6px;
+  }
+
+  .form-group input, .form-group select, .form-group textarea {
+    width: 100%;
+    background: var(--card);
+    border: 1px solid var(--border);
+    color: var(--text);
+    padding: 11px 14px;
+    border-radius: 10px;
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 14px;
+    outline: none;
+  }
+
+  .form-group select option { background: var(--card); }
+  .form-group textarea { resize: none; height: 80px; }
+
+  .modal-actions {
+    display: flex;
+    gap: 10px;
+    margin-top: 24px;
+  }
+
+  .btn-save {
+    flex: 1;
+    background: var(--accent);
+    color: white;
+    border: none;
+    padding: 12px;
+    border-radius: 10px;
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+  }
+
+  .btn-cancel {
+    flex: 1;
+    background: var(--border);
+    color: var(--muted);
+    border: none;
+    padding: 12px;
+    border-radius: 10px;
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+  }
+
+  .toast {
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    background: var(--accent);
+    color: white;
+    padding: 12px 20px;
+    border-radius: 10px;
+    font-size: 13px;
+    font-weight: 600;
+    opacity: 0;
+    transition: opacity 0.3s;
+    z-index: 999;
+  }
+
+  .toast.show { opacity: 1; }
+
+  @media (max-width: 768px) {
+    .sidebar { width: 60px; padding: 16px 8px; }
+    .logo, .nav-label, .nav-item span, .upload-btn span { display: none; }
+    .nav-item { justify-content: center; }
+    .main { margin-left: 60px; padding: 16px; }
+    .stats { grid-template-columns: repeat(2, 1fr); }
+    .upload-btn { padding: 12px 0; }
+  }
+</style>
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<div class="sidebar">
+  <div class="logo">Jason's<span>Vault</span></div>
+  <div class="nav-label">Library</div>
+  <div class="nav-item active" onclick="filterFiles('all')">
+    <div class="nav-dot" style="background:var(--accent)"></div>
+    <span>All Files</span>
+  </div>
+  <div class="nav-item" onclick="filterFiles('music')">
+    <div class="nav-dot" style="background:var(--music)"></div>
+    <span>Music</span>
+  </div>
+  <div class="nav-item" onclick="filterFiles('video')">
+    <div class="nav-dot" style="background:var(--video)"></div>
+    <span>Videos</span>
+  </div>
+  <div class="nav-item" onclick="filterFiles('notes')">
+    <div class="nav-dot" style="background:var(--notes)"></div>
+    <span>Notes</span>
+  </div>
+  <div class="nav-item" onclick="filterFiles('links')">
+    <div class="nav-dot" style="background:var(--links)"></div>
+    <span>Links</span>
+  </div>
+  <button class="upload-btn" onclick="openModal()">+ <span>Add File</span></button>
+</div>
+
+<!-- MAIN -->
+<div class="main">
+  <div class="topbar">
+    <div class="search-wrap">
+      <span class="search-icon">🔍</span>
+      <input type="text" id="searchInput" placeholder="Search your vault..." oninput="searchFiles()">
+    </div>
+  </div>
+
+  <!-- STATS -->
+  <div class="stats">
+    <div class="stat-card music" onclick="filterFiles('music')">
+      <div class="stat-icon">🎵</div>
+      <div class="stat-label">Music</div>
+      <div class="stat-count" id="count-music">0</div>
+    </div>
+    <div class="stat-card video" onclick="filterFiles('video')">
+      <div class="stat-icon">🎬</div>
+      <div class="stat-label">Videos</div>
+      <div class="stat-count" id="count-video">0</div>
+    </div>
+    <div class="stat-card notes" onclick="filterFiles('notes')">
+      <div class="stat-icon">📝</div>
+      <div class="stat-label">Notes</div>
+      <div class="stat-count" id="count-notes">0</div>
+    </div>
+    <div class="stat-card links" onclick="filterFiles('links')">
+      <div class="stat-icon">🔗</div>
+      <div class="stat-label">Links</div>
+      <div class="stat-count" id="count-links">0</div>
+    </div>
+  </div>
+
+  <!-- FILES -->
+  <div class="section-header">
+    <div class="section-title" id="section-title">All Files</div>
+  </div>
+  <div class="files-grid" id="filesGrid"></div>
+</div>
+
+<!-- MODAL -->
+<div class="modal-overlay" id="modal">
+  <div class="modal">
+    <h2>Add to Vault</h2>
+    <div class="form-group">
+      <label>Type</label>
+      <select id="fileType">
+        <option value="music">🎵 Music</option>
+        <option value="video">🎬 Video</option>
+        <option value="notes">📝 Notes</option>
+        <option value="links">🔗 Link</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label>Name</label>
+      <input type="text" id="fileName" placeholder="e.g. SpongeBob Rap Battle">
+    </div>
+    <div class="form-group">
+      <label>Link / URL (Google Drive, YouTube, etc.)</label>
+      <input type="text" id="fileLink" placeholder="https://...">
+    </div>
+    <div class="form-group">
+      <label>Notes (optional)</label>
+      <textarea id="fileNotes" placeholder="Add a description..."></textarea>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="closeModal()">Cancel</button>
+      <button class="btn-save" onclick="saveFile()">Save to Vault</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+  const ICONS = { music: '🎵', video: '🎬', notes: '📝', links: '🔗' };
+  const LABELS = { music: 'Music', video: 'Video', notes: 'Notes', links: 'Link' };
+  let currentFilter = 'all';
+
+  function getFiles() {
+    return JSON.parse(localStorage.getItem('vaultFiles') || '[]');
+  }
+
+  function saveFiles(files) {
+    localStorage.setItem('vaultFiles', JSON.stringify(files));
+  }
+
+  function updateCounts() {
+    const files = getFiles();
+    ['music', 'video', 'notes', 'links'].forEach(type => {
+      document.getElementById('count-' + type).textContent =
+        files.filter(f => f.type === type).length;
+    });
+  }
+
+  function renderFiles(files) {
+    const grid = document.getElementById('filesGrid');
+    if (files.length === 0) {
+      grid.innerHTML = `<div class="empty" style="grid-column:1/-1">
+        <div class="empty-icon">📭</div>
+        <p>Nothing here yet. Add something to your vault!</p>
+      </div>`;
+      return;
+    }
+    grid.innerHTML = files.map((f, i) => `
+      <div class="file-card">
+        <div class="file-thumb ${f.type}">${ICONS[f.type] || '📁'}</div>
+        <div class="file-name" title="${f.name}">${f.name}</div>
+        <div class="file-meta">${LABELS[f.type]} · ${f.date}</div>
+        ${f.notes ? `<div class="file-meta" style="margin-bottom:10px;font-style:italic">${f.notes}</div>` : ''}
+        <div class="file-actions">
+          <button class="btn-dl" onclick="downloadFile(${i})">Open</button>
+          <button class="btn-del" onclick="deleteFile(${i})">Delete</button>
+        </div>
+      </div>
+    `).join('');
+  }
+
+  function filterFiles(type) {
+    currentFilter = type;
+    document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+    event && event.currentTarget && event.currentTarget.classList.add('active');
+    document.getElementById('section-title').textContent =
+      type === 'all' ? 'All Files' : LABELS[type] || 'Files';
+    const files = getFiles();
+    const filtered = type === 'all' ? files : files.filter(f => f.type === type);
+    renderFiles(filtered);
+  }
+
+  function searchFiles() {
+    const q = document.getElementById('searchInput').value.toLowerCase();
+    const files = getFiles();
+    const filtered = files.filter(f =>
+      f.name.toLowerCase().includes(q) ||
+      (f.notes && f.notes.toLowerCase().includes(q))
+    );
+    renderFiles(filtered);
+  }
+
+  function openModal() {
+    document.getElementById('modal').classList.add('show');
+  }
+
+  function closeModal() {
+    document.getElementById('modal').classList.remove('show');
+    document.getElementById('fileName').value = '';
+    document.getElementById('fileLink').value = '';
+    document.getElementById('fileNotes').value = '';
+  }
+
+  function saveFile() {
+    const name = document.getElementById('fileName').value.trim();
+    const link = document.getElementById('fileLink').value.trim();
+    const type = document.getElementById('fileType').value;
+    const notes = document.getElementById('fileNotes').value.trim();
+    if (!name || !link) { showToast('Fill in name and link!'); return; }
+    const files = getFiles();
+    files.unshift({
+      name, link, type, notes,
+      date: new Date().toLocaleDateString('en-GB', { day:'numeric', month:'short', year:'numeric' })
+    });
+    saveFiles(files);
+    updateCounts();
+    filterFiles(currentFilter);
+    closeModal();
+    showToast('Saved to vault! 🔥');
+  }
+
+  function downloadFile(index) {
+    const files = getFiles();
+    const f = files[index];
+    if (f.link) window.open(f.link, '_blank');
+  }
+
+  function deleteFile(index) {
+    const files = getFiles();
+    files.splice(index, 1);
+    saveFiles(files);
+    updateCounts();
+    filterFiles(currentFilter);
+    showToast('Deleted');
+  }
+
+  function showToast(msg) {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.classList.add('show');
+    setTimeout(() => t.classList.remove('show'), 2500);
+  }
+
+  // Init
+  updateCounts();
+  filterFiles('all');
+</script>
+</body>
+</html>
