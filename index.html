@@ -405,44 +405,37 @@
 </head>
 <body>
 
-<!-- SIDEBAR -->
 <div class="sidebar">
   <div class="logo">Jason's<span>Vault</span></div>
   <div class="nav-label">Library</div>
-  <div class="nav-item active" onclick="filterFiles('all')">
+  <div class="nav-item active" onclick="filterFiles('all', event)">
     <div class="nav-dot" style="background:var(--accent)"></div>
     <span>All Files</span>
   </div>
-  <div class="nav-item" onclick="filterFiles('music')">
+  <div class="nav-item" onclick="filterFiles('music', event)">
     <div class="nav-dot" style="background:var(--music)"></div>
     <span>Music</span>
   </div>
-  <div class="nav-item" onclick="filterFiles('video')">
+  <div class="nav-item" onclick="filterFiles('video', event)">
     <div class="nav-dot" style="background:var(--video)"></div>
     <span>Videos</span>
   </div>
-  <div class="nav-item" onclick="filterFiles('notes')">
+  <div class="nav-item" onclick="filterFiles('notes', event)">
     <div class="nav-dot" style="background:var(--notes)"></div>
     <span>Notes</span>
   </div>
-  <div class="nav-item" onclick="filterFiles('links')">
+  <div class="nav-item" onclick="filterFiles('links', event)">
     <div class="nav-dot" style="background:var(--links)"></div>
     <span>Links</span>
   </div>
   <div style="margin-top:auto;">
-  <button class="upload-btn" onclick="openModal()">+ <span>Add File</span></button>
-
-  <button
-    class="upload-btn"
-    style="margin-top:10px;background:#fa6d9a;"
-    onclick="shareVault()"
-  >
-    📱 <span>Share Vault</span>
-  </button>
-</div>
+    <button class="upload-btn" onclick="openModal()">+ <span>Add File</span></button>
+    <button class="upload-btn" style="margin-top:10px;background:#fa6d9a;" onclick="shareVault()">
+      📱 <span>Share Vault</span>
+    </button>
+  </div>
 </div>
 
-<!-- MAIN -->
 <div class="main">
   <div class="topbar">
     <div class="search-wrap">
@@ -451,7 +444,6 @@
     </div>
   </div>
 
-  <!-- STATS -->
   <div class="stats">
     <div class="stat-card music" onclick="filterFiles('music')">
       <div class="stat-icon">🎵</div>
@@ -475,14 +467,12 @@
     </div>
   </div>
 
-  <!-- FILES -->
   <div class="section-header">
     <div class="section-title" id="section-title">All Files</div>
   </div>
   <div class="files-grid" id="filesGrid"></div>
 </div>
 
-<!-- MODAL -->
 <div class="modal-overlay" id="modal">
   <div class="modal">
     <h2>Add to Vault</h2>
@@ -560,10 +550,10 @@
     `).join('');
   }
 
-  function filterFiles(type) {
+  function filterFiles(type, e) {
     currentFilter = type;
     document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
-    event && event.currentTarget && event.currentTarget.classList.add('active');
+    if (e && e.currentTarget) e.currentTarget.classList.add('active');
     document.getElementById('section-title').textContent =
       type === 'all' ? 'All Files' : LABELS[type] || 'Files';
     const files = getFiles();
@@ -624,26 +614,18 @@
     filterFiles(currentFilter);
     showToast('Deleted');
   }
-function shareVault() {
-  const files = getFiles();
 
-  if (files.length === 0) {
-    showToast('Vault is empty!');
-    return;
+  function shareVault() {
+    const files = getFiles();
+    if (files.length === 0) { showToast('Vault is empty!'); return; }
+
+    const data = encodeURIComponent(btoa(unescape(encodeURIComponent(JSON.stringify(files)))));
+    const baseUrl = window.location.origin + window.location.pathname;
+    const shareURL = `${baseUrl}?data=${data}`;
+
+    window.open(`https://api.qrserver.com/v1/create-qr-code/?size=350x350&data=${encodeURIComponent(shareURL)}`, '_blank');
   }
 
-  const data = encodeURIComponent(
-    btoa(JSON.stringify(files))
-  );
-
-  const shareURL =
-    `https://jimmiekun.github.io/my-vault/?data=${data}`;
-
-  window.open(
-    `https://api.qrserver.com/v1/create-qr-code/?size=350x350&data=${encodeURIComponent(shareURL)}`,
-    '_blank'
-  );
-}
   function showToast(msg) {
     const t = document.getElementById('toast');
     t.textContent = msg;
@@ -651,26 +633,31 @@ function shareVault() {
     setTimeout(() => t.classList.remove('show'), 2500);
   }
 
- // Load shared vault from URL
-const params = new URLSearchParams(window.location.search);
-const sharedData = params.get('data');
-
-if (sharedData) {
-  try {
-    const files = JSON.parse(
-      atob(decodeURIComponent(sharedData))
-    );
-
-    const existing = getFiles();
-saveFiles([...files, ...existing]);
-  } catch (e) {
-    console.error('Invalid shared vault');
+  // Sync shared links across instances automatically
+  const params = new URLSearchParams(window.location.search);
+  const sharedData = params.get('data');
+  if (sharedData) {
+    try {
+      const decodedFiles = JSON.parse(decodeURIComponent(escape(atob(decodeURIComponent(sharedData)))));
+      if (Array.isArray(decodedFiles)) {
+        const existing = getFiles();
+        // Skip importing items matching an existing item's name and url destination profile
+        const uniqueNew = decodedFiles.filter(nf => !existing.some(ef => ef.link === nf.link && ef.name === nf.name));
+        
+        saveFiles([...uniqueNew, ...existing]);
+        showToast(`Synchronized ${uniqueNew.length} new items! 🚀`);
+        
+        // Strip out base64 query params safely without breaking history stacks
+        window.history.replaceState({}, document.title, window.location.origin + window.location.pathname);
+      }
+    } catch (e) {
+      console.error('Data string payload parsing initialization error.', e);
+    }
   }
-}
 
-// Init
-updateCounts();
-filterFiles('all');
+  // Initialize view metrics
+  updateCounts();
+  renderFiles(getFiles());
 </script>
 </body>
 </html>
