@@ -17,7 +17,12 @@
     <div class="bg-gray-800 p-8 rounded-2xl shadow-2xl w-96 border border-gray-700 backdrop-blur-md bg-opacity-80">
       <h2 class="text-2xl font-bold mb-6 text-purple-500">Vault Login</h2>
       <input type="email" id="email" placeholder="Email Address" class="w-full mb-4 p-3 rounded-lg bg-gray-900 border border-gray-600 focus:border-purple-500 outline-none transition">
-      <input type="password" id="pass" placeholder="Password" class="w-full mb-6 p-3 rounded-lg bg-gray-900 border border-gray-600 focus:border-purple-500 outline-none transition">
+      
+      <div class="relative w-full mb-6">
+        <input type="password" id="pass" placeholder="Password" class="w-full p-3 pr-16 rounded-lg bg-gray-900 border border-gray-600 focus:border-purple-500 outline-none transition">
+        <button id="toggle-pass" class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-purple-500 text-xs font-bold uppercase">Show</button>
+      </div>
+
       <button id="login-btn" class="w-full bg-purple-600 hover:bg-purple-500 p-3 rounded-lg font-bold transition text-white">Access Vault</button>
       <p class="text-xs text-gray-500 mt-4 text-center">New accounts are registered automatically on first login.</p>
     </div>
@@ -31,7 +36,7 @@
     
     <div class="flex-1 p-8 overflow-y-auto">
        <div class="flex flex-col sm:flex-row gap-4 mb-8 bg-gray-800 bg-opacity-50 p-4 rounded-xl border border-gray-700">
-         <input type="text" id="itemName" placeholder="File Name (e.g., Qwen Model Link)" class="flex-1 p-3 rounded-lg bg-gray-900 border border-gray-600 outline-none focus:border-pink-500 transition">
+         <input type="text" id="itemName" placeholder="File Name" class="flex-1 p-3 rounded-lg bg-gray-900 border border-gray-600 outline-none focus:border-pink-500 transition">
          <input type="text" id="itemUrl" placeholder="https://" class="flex-1 p-3 rounded-lg bg-gray-900 border border-gray-600 outline-none focus:border-pink-500 transition">
          <button id="add-btn" class="bg-pink-600 hover:bg-pink-500 px-8 py-3 rounded-lg font-bold transition text-white shadow-lg">Save to Cloud</button>
        </div>
