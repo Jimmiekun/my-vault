@@ -1,11 +1,19 @@
 // Replace this with your actual Firebase configuration object from the Firebase Console
 const firebaseConfig = {
-  apiKey: "YOUR_API_KEY",
-  authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
-  projectId: "YOUR_PROJECT_ID",
-  storageBucket: "YOUR_PROJECT_ID.appspot.com",
-  messagingSenderId: "YOUR_SENDER_ID",
-  appId: "YOUR_APP_ID"
+
+  apiKey: "AIzaSyAdsYVHxvlBwgv5RaJKVAKIZy0qHmHaMpA",
+
+  authDomain: "for-portfolio-630cf.firebaseapp.com",
+
+  projectId: "for-portfolio-630cf",
+
+  storageBucket: "for-portfolio-630cf.firebasestorage.app",
+
+  messagingSenderId: "68085148173",
+
+  appId: "1:68085148173:web:33f0968e2eba07c8268344",
+
+  measurementId: "G-LV1GCM1PR9"
 };
 
 // Initialize Backend
