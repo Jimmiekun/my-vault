@@ -1,27 +1,17 @@
-// Replace this with your actual Firebase configuration object from the Firebase Console
 const firebaseConfig = {
-
   apiKey: "AIzaSyAdsYVHxvlBwgv5RaJKVAKIZy0qHmHaMpA",
-
   authDomain: "for-portfolio-630cf.firebaseapp.com",
-
   projectId: "for-portfolio-630cf",
-
   storageBucket: "for-portfolio-630cf.firebasestorage.app",
-
   messagingSenderId: "68085148173",
-
   appId: "1:68085148173:web:33f0968e2eba07c8268344",
-
   measurementId: "G-LV1GCM1PR9"
 };
 
-// Initialize Backend
 firebase.initializeApp(firebaseConfig);
 const auth = firebase.auth();
 const db = firebase.firestore();
 
-// Parallax Mouse Tracker
 document.addEventListener('mousemove', (e) => {
   const x = e.clientX / window.innerWidth;
   const y = e.clientY / window.innerHeight;
@@ -31,9 +21,10 @@ document.addEventListener('mousemove', (e) => {
 
 const loginScreen = document.getElementById('login-screen');
 const appScreen = document.getElementById('app-screen');
+const emailInput = document.getElementById('email');
+const passInput = document.getElementById('pass');
 let currentUser = null;
 
-// Listen for Login/Logout state across devices
 auth.onAuthStateChanged(user => {
   if (user) {
     currentUser = user;
@@ -47,26 +38,44 @@ auth.onAuthStateChanged(user => {
   }
 });
 
-// Auth Handler (Creates account if it doesn't exist)
+function triggerShake(element) {
+  element.classList.add('error-shake');
+  setTimeout(() => element.classList.remove('error-shake'), 400);
+}
+
+document.getElementById('toggle-pass').addEventListener('click', function() {
+  if (passInput.type === 'password') {
+    passInput.type = 'text';
+    this.textContent = 'Hide';
+  } else {
+    passInput.type = 'password';
+    this.textContent = 'Show';
+  }
+});
+
 document.getElementById('login-btn').addEventListener('click', async () => {
-  const email = document.getElementById('email').value;
-  const pass = document.getElementById('pass').value;
-  if(!email || !pass) return;
+  const email = emailInput.value.trim();
+  const pass = passInput.value.trim();
+  
+  if (!email) triggerShake(emailInput);
+  if (!pass) triggerShake(passInput);
+  if (!email || !pass) return;
   
   try {
     await auth.signInWithEmailAndPassword(email, pass);
   } catch (error) {
-    if (error.code === 'auth/user-not-found') {
+    try {
       await auth.createUserWithEmailAndPassword(email, pass);
-    } else {
-      console.error(error.message);
+    } catch (regError) {
+      triggerShake(emailInput);
+      triggerShake(passInput);
+      console.error("Vault Access Error:", regError.message);
     }
   }
 });
 
 document.getElementById('logout-btn').addEventListener('click', () => auth.signOut());
 
-// Add Data to Cloud
 document.getElementById('add-btn').addEventListener('click', async () => {
   const name = document.getElementById('itemName').value.trim();
   let url = document.getElementById('itemUrl').value.trim();
@@ -84,7 +93,6 @@ document.getElementById('add-btn').addEventListener('click', async () => {
   document.getElementById('itemUrl').value = '';
 });
 
-// Real-time Cloud Sync Listener
 function loadItems() {
   db.collection('vaults').doc(currentUser.uid).collection('items')
     .orderBy('timestamp', 'desc')
