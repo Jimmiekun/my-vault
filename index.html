@@ -3,46 +3,50 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Jason's Cloud Vault</title>
+  <title>Jason's Vault | Enterprise</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="style.css">
 </head>
-<body class="bg-gray-900 text-gray-200 overflow-hidden font-sans">
-  
+<body class="bg-[#12131C] text-gray-200 font-sans overflow-hidden">
+
   <div class="parallax-bg" id="p-bg"></div>
   <div class="parallax-layer layer-1" id="p-layer1"></div>
   <div class="parallax-layer layer-2" id="p-layer2"></div>
 
   <div id="login-screen" class="relative z-10 flex h-screen items-center justify-center">
-    <div class="bg-gray-800 p-8 rounded-2xl shadow-2xl w-96 border border-gray-700 backdrop-blur-md bg-opacity-80">
-      <h2 class="text-2xl font-bold mb-6 text-purple-500">Vault Login</h2>
-      <input type="email" id="email" placeholder="Email Address" class="w-full mb-4 p-3 rounded-lg bg-gray-900 border border-gray-600 focus:border-purple-500 outline-none transition">
-      
+    <div class="bg-gray-800/80 p-8 rounded-2xl shadow-2xl w-96 border border-gray-700 backdrop-blur-md">
+      <h2 class="text-2xl font-bold mb-6 text-purple-500">VaultOS Login</h2>
+      <input type="email" id="email" placeholder="Email Address" class="w-full mb-4 p-3 rounded-lg bg-black border border-gray-600 outline-none focus:border-purple-500 transition">
       <div class="relative w-full mb-6">
-        <input type="password" id="pass" placeholder="Password" class="w-full p-3 pr-16 rounded-lg bg-gray-900 border border-gray-600 focus:border-purple-500 outline-none transition">
+        <input type="password" id="pass" placeholder="Password" class="w-full p-3 pr-16 rounded-lg bg-black border border-gray-600 outline-none focus:border-purple-500 transition">
         <button id="toggle-pass" class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-purple-500 text-xs font-bold uppercase">Show</button>
       </div>
-
-      <button id="login-btn" class="w-full bg-purple-600 hover:bg-purple-500 p-3 rounded-lg font-bold transition text-white">Access Vault</button>
-      <p class="text-xs text-gray-500 mt-4 text-center">New accounts are registered automatically on first login.</p>
+      <button id="login-btn" class="w-full bg-purple-600 hover:bg-purple-500 p-3 rounded-lg font-bold transition text-white">Initialize Vault</button>
     </div>
   </div>
 
-  <div id="app-screen" class="relative z-10 hidden h-screen flex flex-col md:flex-row">
-    <div class="w-full md:w-64 bg-gray-800 bg-opacity-90 border-r border-gray-700 p-6 flex flex-col backdrop-blur-sm">
-      <h1 class="text-2xl font-bold text-purple-500 mb-8 tracking-tight">Jason's<span class="text-pink-500">Vault</span></h1>
-      <button id="logout-btn" class="mt-auto bg-gray-700 hover:bg-gray-600 p-3 rounded-lg font-semibold transition text-sm">Secure Logout</button>
-    </div>
-    
-    <div class="flex-1 p-8 overflow-y-auto">
-       <div class="flex flex-col sm:flex-row gap-4 mb-8 bg-gray-800 bg-opacity-50 p-4 rounded-xl border border-gray-700">
-         <input type="text" id="itemName" placeholder="File Name" class="flex-1 p-3 rounded-lg bg-gray-900 border border-gray-600 outline-none focus:border-pink-500 transition">
-         <input type="text" id="itemUrl" placeholder="https://" class="flex-1 p-3 rounded-lg bg-gray-900 border border-gray-600 outline-none focus:border-pink-500 transition">
-         <button id="add-btn" class="bg-pink-600 hover:bg-pink-500 px-8 py-3 rounded-lg font-bold transition text-white shadow-lg">Save to Cloud</button>
-       </div>
-       
-       <div id="grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6"></div>
-    </div>
+  <div id="app-screen" class="relative z-10 hidden flex h-screen">
+    <aside class="w-64 border-r border-gray-800 bg-gray-900/50 p-6 backdrop-blur-md">
+      <h1 class="text-xl font-bold text-white mb-10">VaultOS<span class="text-pink-500">™</span></h1>
+      <button id="logout-btn" class="mt-auto w-full border border-gray-700 hover:bg-gray-800 p-3 rounded-lg text-sm transition">Sign Out</button>
+    </aside>
+
+    <main class="flex-1 p-8 overflow-y-auto">
+      <div class="flex gap-4 mb-8 bg-gray-800/40 p-4 rounded-xl border border-gray-700 backdrop-blur-sm">
+        <input type="text" id="itemName" placeholder="Item Name" class="flex-1 bg-black p-3 rounded-lg border border-gray-700 outline-none focus:border-purple-500 transition">
+        <input type="text" id="itemUrl" placeholder="https://..." class="flex-1 bg-black p-3 rounded-lg border border-gray-700 outline-none focus:border-purple-500 transition">
+        <button id="add-btn" class="bg-pink-600 hover:bg-pink-500 px-8 py-3 rounded-lg font-bold text-white transition">Save to Cloud</button>
+      </div>
+      <div id="grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"></div>
+    </main>
+
+    <aside class="w-72 border-l border-gray-800 bg-gray-900/50 p-6 hidden lg:block backdrop-blur-md">
+      <h3 class="text-xs font-bold text-gray-500 uppercase tracking-widest mb-4">Event Log</h3>
+      <div id="log-feed" class="text-[10px] font-mono text-green-500 space-y-2 opacity-70">
+        <div>> System Initialized...</div>
+        <div>> Waiting for Input...</div>
+      </div>
+    </aside>
   </div>
 
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
