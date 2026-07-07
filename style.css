@@ -81,3 +81,32 @@ input:focus { border-color: var(--accent-purple); box-shadow: 0 0 10px #8A2BE244
 }
 
 .vault-card:hover { border-color: var(--accent-pink); transform: translateY(-5px); }
+/* Sidebar & Layout Containers */
+aside {
+  background: rgba(20, 21, 30, 0.4);
+  border: 1px solid var(--border);
+  backdrop-filter: blur(15px);
+}
+
+/* Event Log Panel (Right Side) */
+#log-feed {
+  font-size: 10px;
+  line-height: 1.4;
+  color: #4ade80; /* Matrix Green */
+  font-family: 'Courier New', monospace;
+  height: 60vh;
+  overflow-y: auto;
+}
+
+/* Scrollbar Styling */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+
+/* Shake Animation for Input Errors */
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-5px); }
+  75% { transform: translateX(5px); }
+}
+
+.error-shake { animation: shake 0.3s ease-in-out; border-color: var(--accent-pink); }
