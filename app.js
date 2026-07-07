@@ -5,13 +5,13 @@ const firebaseConfig = {
   projectId: "for-portfolio-630cf",
   storageBucket: "for-portfolio-630cf.firebasestorage.app",
   messagingSenderId: "68085148173",
-  appId: "1:68085148173:web:825e9456cec1a2c8268344", // Fixed: Matches your live console App ID exactly
+  appId: "1:68085148173:web:825e9456cec1a2c8268344", 
   measurementId: "G-LV1GCM1PR9"
 };
 
 firebase.initializeApp(firebaseConfig);
 const auth = firebase.auth();
-const db = firebase.firestore();
+const rdb = firebase.database(); // Swapped out Firestore for the active Realtime Database engine
 
 // 2. Enterprise Real-time Event Logger 
 const EventLogger = {
@@ -105,8 +105,11 @@ document.getElementById('add-btn')?.addEventListener('click', async () => {
   }
 
   try {
-    await db.collection('vaults').doc(auth.currentUser.uid).collection('items').add({
-      name, url, timestamp: firebase.firestore.FieldValue.serverTimestamp()
+    // Pushes database writes directly to Realtime Database tracking nodes
+    await rdb.ref(`vaults/${auth.currentUser.uid}/items`).push({
+      name, 
+      url, 
+      timestamp: firebase.database.ServerValue.TIMESTAMP
     });
     EventLogger.log(`Resource completely linked to backend storage: ${name}`);
     nameInput.value = '';
@@ -120,63 +123,70 @@ document.getElementById('add-btn')?.addEventListener('click', async () => {
 function loadItems() {
   if (!auth.currentUser) return;
 
-  db.collection('vaults').doc(auth.currentUser.uid).collection('items')
-    .orderBy('timestamp', 'desc')
-    .onSnapshot(snap => {
-      const grid = document.getElementById('grid');
-      const fileTree = document.getElementById('file-tree');
-      
-      if (grid) grid.innerHTML = '';
-      if (fileTree) fileTree.innerHTML = '';
+  // Set up live watcher on your data path node using .on('value')
+  rdb.ref(`vaults/${auth.currentUser.uid}/items`).on('value', snap => {
+    const grid = document.getElementById('grid');
+    const fileTree = document.getElementById('file-tree');
+    
+    if (grid) grid.innerHTML = '';
+    if (fileTree) fileTree.innerHTML = '';
 
-      if (snap.empty) {
-        if (grid) grid.innerHTML = `<div class="col-span-full border border-dashed border-gray-800 p-8 rounded-xl text-center text-gray-500 font-mono text-xs">No active nodes stored.</div>`;
-        if (fileTree) fileTree.innerHTML = `<div class="text-gray-600 italic py-2 text-center text-xs">Directory empty</div>`;
-        return;
+    if (!snap.exists()) {
+      if (grid) grid.innerHTML = `<div class="col-span-full border border-dashed border-gray-800 p-8 rounded-xl text-center text-gray-500 font-mono text-xs">No active nodes stored.</div>`;
+      if (fileTree) fileTree.innerHTML = `<div class="text-gray-600 italic py-2 text-center text-xs">Directory empty</div>`;
+      return;
+    }
+
+    const items = [];
+    snap.forEach(child => {
+      items.push({ id: child.key, ...child.val() });
+    });
+
+    // Sort items reverse-chronologically so newest files appear first
+    items.sort((a, b) => b.timestamp - a.timestamp);
+
+    items.forEach(item => {
+      const meta = getFileMeta(item.name);
+      
+      // Render Active Dashboard Nodes matching your premium layout
+      if (grid) {
+        grid.innerHTML += `
+          <div class="item-card p-6 rounded-xl flex flex-col justify-between h-44 transition">
+            <div>
+              <div class="mb-2">
+                <span class="text-[9px] font-mono tracking-widest px-2 py-0.5 rounded bg-black/60 font-bold ${meta.color}">${meta.tag}</span>
+              </div>
+              <h3 class="font-mono font-bold text-base text-gray-100 line-clamp-2 leading-snug">${item.name}</h3>
+            </div>
+            <div class="flex items-center justify-between pt-4 border-t border-gray-800/40">
+              <a href="${item.url}" target="_blank" class="text-pink-500 hover:text-pink-400 font-bold font-mono text-xs tracking-wider transition">LAUNCH &rarr;</a>
+              <button onclick="deleteItem('${item.id}')" class="text-xs font-mono text-gray-500 hover:text-red-400 transition">REMOVE</button>
+            </div>
+          </div>
+        `;
       }
 
-      snap.forEach(doc => {
-        const d = doc.data();
-        const meta = getFileMeta(d.name);
-        
-        // Render Active Dashboard Nodes matching your premium layout
-        if (grid) {
-          grid.innerHTML += `
-            <div class="item-card p-6 rounded-xl flex flex-col justify-between h-44 transition">
-              <div>
-                <div class="mb-2">
-                  <span class="text-[9px] font-mono tracking-widest px-2 py-0.5 rounded bg-black/60 font-bold ${meta.color}">${meta.tag}</span>
-                </div>
-                <h3 class="font-mono font-bold text-base text-gray-100 line-clamp-2 leading-snug">${d.name}</h3>
-              </div>
-              <div class="flex items-center justify-between pt-4 border-t border-gray-800/40">
-                <a href="${d.url}" target="_blank" class="text-pink-500 hover:text-pink-400 font-bold font-mono text-xs tracking-wider transition">LAUNCH &rarr;</a>
-                <button onclick="deleteItem('${doc.id}')" class="text-xs font-mono text-gray-500 hover:text-red-400 transition">REMOVE</button>
-              </div>
-            </div>
-          `;
-        }
-
-        // Render Left-Sidebar Dynamic Directory Listing
-        if (fileTree) {
-          fileTree.innerHTML += `
-            <div class="flex items-center gap-2 py-1 px-2 rounded hover:bg-gray-800/30 text-gray-400 cursor-pointer transition truncate">
-              <span class="${meta.color} font-bold select-none">&bull;</span>
-              <span class="truncate hover:text-white" title="${d.name}">${d.name}</span>
-            </div>
-          `;
-        }
-      });
-    }, error => {
-      EventLogger.log(`Real-time thread interrupted: ${error.message}`);
+      // Render Left-Sidebar Dynamic Directory Listing
+      if (fileTree) {
+        fileTree.innerHTML += `
+          <div class="flex items-center gap-2 py-1 px-2 rounded hover:bg-gray-800/30 text-gray-400 cursor-pointer transition truncate">
+            <span class="${meta.color} font-bold select-none">&bull;</span>
+            <span class="truncate hover:text-white" title="${item.name}">${item.name}</span>
+          </div>
+        `;
+      }
     });
+  }, error => {
+    EventLogger.log(`Real-time thread interrupted: ${error.message}`);
+  });
 }
 
 // 8. Secure Asset Purging Actions
 window.deleteItem = async (id) => {
   if (!auth.currentUser) return;
   try {
-    await db.collection('vaults').doc(auth.currentUser.uid).collection('items').doc(id).delete();
+    // Removes the unique tracking record ID branch from database paths
+    await rdb.ref(`vaults/${auth.currentUser.uid}/items/${id}`).remove();
     EventLogger.log("Sector storage payload dropped successfully.");
   } catch (error) {
     EventLogger.log(`Eviction execution pipeline failure: ${error.message}`);
